@@ -23,10 +23,15 @@ public class NotificationEventListener {
     private final List<Notifier<? extends NotificationPayload>> notifiers;
     private final ProfileProperties profileProperties;
 
+    /**
+     * Event Listner when sending notification
+     *
+     * @param payload - Notification Payload e.g. Email notification
+     */
     @Async
     @EventListener
     public void handleNotification(NotificationPayload payload) {
-        switch (profileProperties.active()){
+        switch (profileProperties.active()) {
             case DEV -> {
                 System.out.println("To: " + payload.recipient());
                 System.out.println(payload.content());
@@ -39,11 +44,9 @@ public class NotificationEventListener {
         }
     }
 
-    @EventListener
-    public void handleNotifications(List<NotificationPayload> payloads) {
-        payloads.forEach(this::handleNotification);
-    }
-
+    /**
+     * Send Notification via Notifier
+     */
     private static <T extends NotificationPayload> void sendNotification(
         Notifier<T> notifier,
         NotificationPayload payload

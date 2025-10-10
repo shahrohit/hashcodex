@@ -7,9 +7,6 @@ import java.util.Base64;
  * Utility class providing general-purpose helper methods.
  */
 public class Helper {
-
-    private static final String YOUTUBE_PATTERN = "(?:youtube\\.com/(?:.*v=|embed/|v/)|youtu\\.be/)([\\w-]{11})";
-
     /**
      * Generates a cryptographically secure random token.
      * <p>
@@ -26,6 +23,11 @@ public class Helper {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
     }
 
+    /**
+     * Formate the give value into the url friendly slug
+     *
+     * @return formatted slug
+     */
     public static String formateSlug(String slug) {
         return slug.replace(' ', '-').toLowerCase();
     }

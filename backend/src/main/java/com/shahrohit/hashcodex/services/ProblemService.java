@@ -6,6 +6,9 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
+/**
+ * Service interface to get the problems publically.
+ */
 public interface ProblemService {
     Page<UserProblemItem> findProblems(Long useId, Pageable pageable);
     List<TopicItem> findAllTopics();

@@ -8,20 +8,32 @@ import com.shahrohit.hashcodex.utils.Constants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
-@Component
+/**
+ * Consumer service for handling submission results from RabbitMQ.
+ * <p>
+ * This service listens to the configured result queue and processes
+ * {@link SubmissionResult} messages. The raw AMQP message is also
+ * available for accessing metadata such as correlation ID, headers, etc.
+ * </p>
+ */
+@Service
 @RequiredArgsConstructor
 public class SubmissionConsumer {
     private final ProblemSubmissionRepository problemSubmissionRepository;
     private final ServerSentEventHub serverSentEventHub;
 
+    /**
+     * Processes incoming {@link SubmissionResult} messages from the result queue.
+     * @param result the deserialized submission result
+     * @param raw    the raw AMQP message, containing metadata like headers and correlation ID
+     */
     @RabbitListener(queues = Constants.RABBITMQ.RES_QUEUE)
     public void onResult(SubmissionResult result, Message raw) {
         String corr = raw.getMessageProperties().getCorrelationId();
-        System.out.println("Done");
 
         if (result == null) {
             serverSentEventHub.send(corr, "verdict", null);

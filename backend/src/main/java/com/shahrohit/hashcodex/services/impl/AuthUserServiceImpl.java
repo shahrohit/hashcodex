@@ -16,6 +16,7 @@ import com.shahrohit.hashcodex.globals.ErrorCode;
 import com.shahrohit.hashcodex.properties.FrontendProperties;
 import com.shahrohit.hashcodex.repositories.UserRepository;
 import com.shahrohit.hashcodex.services.AuthUserService;
+import com.shahrohit.hashcodex.utils.Constants;
 import com.shahrohit.hashcodex.utils.Helper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -28,6 +29,9 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Implementation of {@link AuthUserService} to handle User authentication
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthUserServiceImpl implements AuthUserService {
@@ -44,7 +48,7 @@ public class AuthUserServiceImpl implements AuthUserService {
 
         User user = userRepository.save(UserAdapter.toEntity(body, passwordEncoder.encode(body.password())));
 
-        String url = generateURLAndSaveToRedis(RedisKey.VERIFY, user.getPublicId(), "verify-account");
+        String url = generateURLAndSaveToRedis(RedisKey.VERIFY, user.getPublicId(), Constants.Auth.VERIFY_ACCOUNT);
         publisher.publishEvent(NotificationTemplate.verifyEmail(user.getName(), body.email(), url));
     }
 
@@ -68,25 +72,24 @@ public class AuthUserServiceImpl implements AuthUserService {
 
         if (user.isEmailVerified()) return UserAdapter.toUserIdProfile(user);
 
-        String url = generateURLAndSaveToRedis(RedisKey.VERIFY, user.getPublicId(), "verify-account");
+        String url = generateURLAndSaveToRedis(RedisKey.VERIFY, user.getPublicId(), Constants.Auth.VERIFY_ACCOUNT);
         publisher.publishEvent(NotificationTemplate.verifyEmail(user.getName(), body.email(), url));
         return null;
     }
 
     @Override
     public void forgetPassword(ForgetPasswordRequest body) {
-        PublicIdAndName user = userRepository.findPublicIdByEmail(body.email())
+        PublicIdAndName user = userRepository.findPublicIdAndNameByEmail(body.email())
             .orElseThrow(() -> new NotFoundException(ErrorCode.EMAIL_NOT_FOUND));
 
-        String url = generateURLAndSaveToRedis(RedisKey.PASSWORD, user.publicId(), "reset-password");
+        String url = generateURLAndSaveToRedis(RedisKey.PASSWORD, user.publicId(), Constants.Auth.RESET_PASSWORD);
         publisher.publishEvent(NotificationTemplate.resetPassword(user.name(), body.email(), url));
     }
 
     @Override
     @Transactional
     public void resetResetPassword(ResetPasswordRequest body) {
-        boolean isPasswordSame = Objects.equals(body.password(), body.confirmPassword());
-        if (!isPasswordSame) throw new BadRequestException(ErrorCode.PASSWORD_MISMATCH);
+        if (!Objects.equals(body.password(), body.confirmPassword())) throw new BadRequestException(ErrorCode.PASSWORD_NOT_MATCH);
 
         String token = extractTokenFromRedis(RedisKey.PASSWORD, body.publicId());
         if (!Objects.equals(token, body.token())) throw new NotFoundException(ErrorCode.LINK_EXPIRED);
@@ -95,12 +98,25 @@ public class AuthUserServiceImpl implements AuthUserService {
         if (updateCount == 0) throw new NotFoundException(ErrorCode.USER_NOT_FOUND);
     }
 
-    private String generateURLAndSaveToRedis(RedisKey key, UUID publicId, String path) {
+    /**
+     * Helper Method to Generate Secure Token and save to Redis
+     * @param key - Redis Key
+     * @param publicId - public ID of the user
+     * @param type - Authentication type - Verify Account or Reset Password
+     * @return URL which will be sent back to the frontend
+     */
+    private String generateURLAndSaveToRedis(RedisKey key, UUID publicId, String type) {
         String token = Helper.generateSecureToken();
         redisStorage.set(key.generate(publicId.toString()), token, Duration.ofMinutes(15));
-        return String.format("%s/auth/%s?token=%s&publicId=%s", frontendProperties.url(), path, token, publicId);
+        return String.format("%s/auth/%s?token=%s&publicId=%s", frontendProperties.url(), type, token, publicId);
     }
 
+    /**
+     * Helper method to extract the token from redis
+     * @param key - Redis Key
+     * @param publicId - Public ID of the user
+     * @return value store again the redist key
+     */
     private String extractTokenFromRedis(RedisKey key, UUID publicId) {
         return redisStorage.getAndDelete(key.generate(publicId.toString()), String.class);
     }

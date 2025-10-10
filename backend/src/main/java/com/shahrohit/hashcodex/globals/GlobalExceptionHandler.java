@@ -71,6 +71,9 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ErrorResponse.build(ErrorCode.NOT_FOUND, Map.of(errorKey, ex.getMessage())), HttpStatus.NOT_FOUND);
     }
 
+    /**
+     * Handles error when the requirest data can be parsed.
+     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleNoResourceFoundException(HttpMessageNotReadableException ex) {
         return new ResponseEntity<>(ErrorResponse.build(ErrorCode.VALIDATION_ERROR, null), HttpStatus.NOT_FOUND);

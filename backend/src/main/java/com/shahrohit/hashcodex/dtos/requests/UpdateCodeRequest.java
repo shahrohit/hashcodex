@@ -4,10 +4,13 @@ import com.shahrohit.hashcodex.enums.Language;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+/**
+ * Request DTO to update code
+ */
 public record UpdateCodeRequest(
-    @NotNull(message = "{field.required}")
+    @NotNull(message = "{language.required}")
     Language language,
 
-    @NotBlank(message = "{field.required}")
+    @NotBlank(message = "{code.required}")
     String code
 ) {}

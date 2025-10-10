@@ -6,7 +6,7 @@ import com.shahrohit.hashcodex.dtos.responses.SubmissionItem;
 
 import java.util.List;
 
-public interface ProblemSubmission {
+public interface ProblemSubmissionService {
     String runCode(Long userId, Integer problemNumber, RunCodeRequest body);
     String submitCode(Long userId, Integer number, SubmitCodeRequest body);
     List<SubmissionItem> findAllSubmissions(Long userId, Integer number);

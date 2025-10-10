@@ -16,6 +16,9 @@ import org.springframework.stereotype.Component;
 public class EmailNotifier implements Notifier<EmailPayload> {
     private final JavaMailSender mailSender;
 
+    /**
+     * Send Email Notification
+     */
     @Override
     public void send(EmailPayload payload) {
         try {

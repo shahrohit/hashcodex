@@ -7,7 +7,7 @@ import com.shahrohit.hashcodex.globals.UserPrincipal;
 import com.shahrohit.hashcodex.dtos.requests.RunCodeRequest;
 import com.shahrohit.hashcodex.dtos.requests.SubmitCodeRequest;
 import com.shahrohit.hashcodex.dtos.responses.SubmissionItem;
-import com.shahrohit.hashcodex.services.ProblemSubmission;
+import com.shahrohit.hashcodex.services.ProblemSubmissionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/api/problems/submissions")
 @RequiredArgsConstructor
 public class ProblemSubmissionController {
-    private final ProblemSubmission problemSubmission;
+    private final ProblemSubmissionService problemSubmission;
     private final ServerSentEventHub serverSentEventHub;
 
     @PostMapping("/run/{number}")

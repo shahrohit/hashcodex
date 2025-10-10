@@ -1,12 +1,14 @@
 package com.shahrohit.hashcodex.dtos.requests;
 
-
 import com.shahrohit.hashcodex.enums.ProblemDifficulty;
 import com.shahrohit.hashcodex.utils.Helper;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+/**
+ * Request DTO to create problem
+ */
 public record CreateProblemRequest(
     @NotBlank(message = "{field.required}")
     @Size(min = 2, max = 100, message = "{field.size2_100}")

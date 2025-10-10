@@ -13,7 +13,7 @@ public final class NotificationTemplate {
               <div style="font-family: Arial, sans-serif; color: #333;">
                 <p><b>Hi %s,</b></p>
                 <br/>
-                <p>We received a request to reset your password for your <b>Engineerg</b> account.\s
+                <p>We received a request to reset your password for your <b>Hashcodex</b> account.\s
                 Click the button below to set a new password:</p>
                 <p>
                     <a href="%s"\s
@@ -31,7 +31,7 @@ public final class NotificationTemplate {
             </div>
             """.formatted(name, verificationLink, verificationLink, verificationLink);
 
-        String subject = "Reset Your Password - Engineerg";
+        String subject = "Reset Your Password - Hashcodex";
         return new EmailPayload(email, subject, body);
     }
 
@@ -39,7 +39,7 @@ public final class NotificationTemplate {
         String body = """
             <div style="font-family: Arial, sans-serif; color: #333;">
                 <p><b>Hi %s,</b></p>
-                <p>Thank you for registering with <b>Engineerg</b>. To complete your registration, please verify your account by clicking the button below:</p>
+                <p>Thank you for registering with <b>Hashcodex</b>. To complete your registration, please verify your account by clicking the button below:</p>
                 <br/>
                 <p>
                     <a href="%s"
@@ -54,7 +54,7 @@ public final class NotificationTemplate {
             </div>
             """.formatted(name, verificationLink, verificationLink, verificationLink);
 
-        String subject = "Verify your Account - Engineerg";
+        String subject = "Verify your Account - Hashcodex";
         return new EmailPayload(email, subject, body);
     }
 }

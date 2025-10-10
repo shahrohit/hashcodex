@@ -69,8 +69,7 @@ public class SecurityConfig {
             List.of(
                 Constants.Auth.HEADER_CONTENT_TYPE,
                 Constants.Auth.HEADER_AUTHORIZATION,
-                Constants.Auth.HEADER_SET_COOKIE,
-                Constants.Auth.HEADER_USER_AGENT
+                Constants.Auth.HEADER_SET_COOKIE
             ));
         config.setAllowCredentials(true);
 

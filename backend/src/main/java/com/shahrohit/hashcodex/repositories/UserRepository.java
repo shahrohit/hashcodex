@@ -21,20 +21,20 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     @Query(UserQuery.FIND_PID_AND_NAME_BY_EMAIL)
-    Optional<PublicIdAndName> findPublicIdByEmail(@Param("email") String email);
+    Optional<PublicIdAndName> findPublicIdAndNameByEmail(@Param("email") String email);
 
-    @Query(UserQuery.FIND_USER_PROFILE)
-    Optional<UserProfile> findUserProfile(@Param("id") Long userId);
+    @Query(UserQuery.FIND_USER_PROFILE_BY_ID)
+    Optional<UserProfile> findUserProfileById(@Param("id") Long userId);
 
     @Modifying
-    @Query(UserQuery.UPDATE_EMAIL_VERIFIED_BY_PID)
+    @Query(UserQuery.UP_EMAIL_VERIFY_BY_PID)
     int updateEmailVerifiedByPublicId(
         @Param("publicId") UUID publicId,
         @Param("updatedAt") Instant updatedAt
     );
 
     @Modifying
-    @Query(UserQuery.UPDATE_PASSWORD_BY_PID)
+    @Query(UserQuery.UP_PASS_BY_PID)
     int updatePasswordByPublicId(
         @Param("publicId") UUID publicId,
         @Param("hashedPassword") String hashedPassword,

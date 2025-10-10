@@ -59,6 +59,5 @@ public class User {
     @PrePersist
     protected void prePersist() {
         publicId = UUID.randomUUID();
-        enabled = false;
     }
 }

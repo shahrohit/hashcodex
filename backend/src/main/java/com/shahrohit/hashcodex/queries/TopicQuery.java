@@ -1,30 +1,41 @@
 package com.shahrohit.hashcodex.queries;
 
 public interface TopicQuery {
+    // language=JPQL
+    String FIND_ALL_TOPICS = "SELECT new com.shahrohit.hashcodex.dtos.responses.TopicItem(t.slug, t.name) FROM Topic t ORDER BY t.id";
 
     // language=JPQL
-    String ADMIN_FIND_ID_BY_SLUG = "SELECT t.id FROM Topic t where t.slug = :slug";
+    String FIND_ID_BY_SLUG = "SELECT t.id FROM Topic t where t.slug = :slug";
 
     // language=JPQL
-    String ADMIN_UPDATE_BY_SLUG = "UPDATE Topic t SET t.slug = :slug, t.name  = :name WHERE t.slug = :oldSlug";
+    String UP_TOPIC_SLUG = "UPDATE Topic t SET t.slug = :slug, t.name  = :name WHERE t.slug = :oldSlug";
 
     // language=JPQL
-    String ADMIN_DELETE_BY_SLUG = "DELETE Topic t WHERE t.slug = :slug";
+    String DEL_TOPIC_BY_SLUG = "DELETE Topic t WHERE t.slug = :slug";
 
+    // -------------------- Problem-Topic Query -----------------------------
+    // language=JPQL
+    String EXT_TOPIC_BY_PROBLEM_ID = "SELECT COUNT(pt) > 0 FROM ProblemTopic pt WHERE pt.problem.id = :problemId";
 
     // language=JPQL
-    String PUBLIC_FIND_ALL = "SELECT new com.shahrohit.hashcodex.dtos.responses.TopicItem(t.slug, t.name) FROM Topic t ORDER BY t.id";
-
-    // language=JPQL
-    String PUBLIC_FIND_ALL_WITH_TOTAL_PROBLEMS = """
-        SELECT new com.shahrohit.hashcodex.dtos.responses.StudentTopicItem(t.slug, t.name, COUNT(DISTINCT p))
-        FROM Topic t
-        LEFT JOIN ProblemTopic pt ON pt.topic = t
-        JOIN pt.problem p
-        where p.active = true
-        GROUP BY t.id, t.slug
-        ORDER BY t.id
+    String FIND_TOPIC_NAMES_BY_ID = """
+        SELECT t.name
+        FROM ProblemTopic pt
+        JOIN pt.topic t
+        WHERE pt.problem.id = :problemId
         """;
 
+    // language=JPQL
+    String FIND_ALL_TOPICS_BY_PROBLEM_NUM = """
+        SELECT new com.shahrohit.hashcodex.dtos.responses.TopicItem(t.slug, t.name)
+        FROM ProblemTopic pt
+        JOIN pt.topic t
+        WHERE pt.problem.number = :number
+        """;
 
+    // language=JPQL
+    String DEL_PROBLEM_TOPIC_BY_IDS = """
+          DELETE FROM ProblemTopic pt
+          where pt.problem.id = :problemId and pt.topic.id = :topicId
+        """;
 }

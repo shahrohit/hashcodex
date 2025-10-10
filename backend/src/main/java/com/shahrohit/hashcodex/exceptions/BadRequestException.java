@@ -25,8 +25,4 @@ public class BadRequestException extends BaseException {
     public BadRequestException(ErrorCode errorCode) {
         super(HttpStatus.BAD_REQUEST, errorCode);
     }
-
-    public BadRequestException() {
-        super(HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
-    }
 }

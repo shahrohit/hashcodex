@@ -18,7 +18,7 @@ public class RedisConfig {
 
     /**
      * Creates a RedisConnectionFactory bean, which is the core factory interface to establish connections to a Redis server.
-     * <p>Uses Lettuce ({@link LettuceConnectionFactory}), a popular, non-blocking Redis client.</p>
+     * <p>Uses Lettuce ({@link LettuceConnectionFactory}), a popular, modern, scalable, non-blocking Redis client (based on Netty).</p>
      * <p>By default, it connects to Redis at {@code localhost:6379},
      * unless overridden by properties (e.g., {@code spring.redis.host},{@code spring.redis.port})
      * </p>
@@ -41,7 +41,7 @@ public class RedisConfig {
         ObjectMapper mapper = new ObjectMapper();
         mapper.activateDefaultTyping(
             BasicPolymorphicTypeValidator.builder()
-                .allowIfSubType("com.lms")
+                .allowIfSubType("com.shahrohit.hashcodex")
                 .build(),
             ObjectMapper.DefaultTyping.NON_FINAL
         );

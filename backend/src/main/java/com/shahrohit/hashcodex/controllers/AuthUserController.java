@@ -15,6 +15,7 @@ import com.shahrohit.hashcodex.utils.CookieUtils;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,7 +34,7 @@ public class AuthUserController {
     @PostMapping("/register")
     public ResponseEntity<Response<NullType>> register(@Valid @RequestBody CreateUserRequest body) {
         authUserService.register(body);
-        return ResponseEntity.ok(Response.build(SuccessCode.CREATED));
+        return new ResponseEntity<>(Response.build(SuccessCode.CREATED), HttpStatus.CREATED);
     }
 
     @PatchMapping("/verify-account")
@@ -51,7 +52,7 @@ public class AuthUserController {
     @PatchMapping("/reset-password")
     public ResponseEntity<Response<NullType>> resetPassword(@Valid @RequestBody ResetPasswordRequest body) {
         if (!Objects.equals(body.password(), body.confirmPassword()))
-            throw new BadRequestException(ErrorCode.PASSWORD_MISMATCH);
+            throw new BadRequestException(ErrorCode.PASSWORD_NOT_MATCH);
         authUserService.resetResetPassword(body);
         return ResponseEntity.ok(Response.build(SuccessCode.VERIFIED));
     }

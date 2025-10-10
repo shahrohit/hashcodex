@@ -16,9 +16,8 @@ import com.shahrohit.hashcodex.exceptions.AlreadyExistsException;
 import com.shahrohit.hashcodex.exceptions.ForbiddenException;
 import com.shahrohit.hashcodex.exceptions.NotFoundException;
 import com.shahrohit.hashcodex.globals.ErrorCode;
-import com.shahrohit.hashcodex.repositories.ProblemRepository;
-import com.shahrohit.hashcodex.repositories.ProblemTopicRepository;
-import com.shahrohit.hashcodex.repositories.TopicRepository;
+import com.shahrohit.hashcodex.queries.ProblemTestcaseQuery;
+import com.shahrohit.hashcodex.repositories.*;
 import com.shahrohit.hashcodex.services.AdminProblemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -35,10 +34,11 @@ public class AdminProblemServiceImpl implements AdminProblemService {
     private final ProblemRepository problemRepository;
     private final TopicRepository topicRepository;
     private final ProblemTopicRepository problemTopicRepository;
+    private final ProblemTestcaseRepository problemTestcaseRepository;
+    private final ProblemCodeRepository problemCodeRepository;
 
     private static final int languageCount = Language.values().length;
 
-    // ------ Problem ----------
     @Override
     public void create(CreateProblemRequest body) {
         if (problemRepository.existsBySlug(body.slug())) {
@@ -109,11 +109,11 @@ public class AdminProblemServiceImpl implements AdminProblemService {
             .orElseThrow(() -> new NotFoundException(ErrorCode.PROBLEM_NOT_FOUND));
 
         if (active) {
-            if (!problemTopicRepository.existsByProblemId(problemId))
+            if (!problemTopicRepository.existsTopicByProblemId(problemId))
                 throw new ForbiddenException(ErrorCode.TOPIC_REQUIRED);
-            if (!problemRepository.existsProblemCodes(problemId, languageCount))
+            if (!problemCodeRepository.existsProblemCodes(problemId, languageCount))
                 throw new ForbiddenException(ErrorCode.CODE_REQUIRED);
-            if (!problemRepository.existsProblemTestcases(problemId))
+            if (!problemTestcaseRepository.existsProblemTestcases(problemId))
                 throw new ForbiddenException(ErrorCode.TESTCASE_REQUIRED);
         }
 

@@ -17,6 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Implementation of {@link ProblemService} to get the problems.
+ */
 @Service
 @RequiredArgsConstructor
 public class ProblemServiceImpl implements ProblemService {
@@ -25,6 +28,7 @@ public class ProblemServiceImpl implements ProblemService {
     private final ProblemSubmissionRepository problemSubmissionRepository;
     private final ProblemTestcaseRepository problemTestcaseRepository;
     private final ProblemCodeRepository problemCodeRepository;
+    private final ProblemTopicRepository problemTopicRepository;
 
     @Override
     public Page<UserProblemItem> findProblems(Long useId, Pageable pageable){
@@ -42,7 +46,7 @@ public class ProblemServiceImpl implements ProblemService {
         Problem problem = problemRepository.findActiveProblemBySlug(slug)
             .orElseThrow(() -> new NotFoundException(ErrorCode.PROBLEM_NOT_FOUND));
 
-        List<String> topics = problemRepository.findTopicNamesByProblemId(problem.getId());
+        List<String> topics = problemTopicRepository.findTopicNamesByProblemId(problem.getId());
         List<String> testcases = problemTestcaseRepository.findSampleTestcasesByProblemId(problem.getId());
         Map<Language, String> code = problemCodeRepository.findStarterCodeByProblemId(problem.getId())
             .stream()

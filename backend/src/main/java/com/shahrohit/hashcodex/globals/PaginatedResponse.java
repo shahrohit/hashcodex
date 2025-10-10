@@ -4,6 +4,9 @@ import org.springframework.data.domain.Page;
 
 import java.util.List;
 
+/**
+ * Paginated Response of the request
+ */
 public record PaginatedResponse<T>(
     List<T> items,
     int totalPages,
@@ -12,6 +15,9 @@ public record PaginatedResponse<T>(
     int pageSize
 ) {
 
+    /**
+     * Build {@link PaginatedResponse} from {@link Page} data
+     */
     public static <T> PaginatedResponse<T> build(Page<T> page) {
         return new PaginatedResponse<>(page.getContent(),
             page.getTotalPages(),

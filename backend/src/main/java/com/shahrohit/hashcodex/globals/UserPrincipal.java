@@ -1,6 +1,5 @@
 package com.shahrohit.hashcodex.globals;
 
-
 import com.shahrohit.hashcodex.modules.sessions.SessionUser;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;

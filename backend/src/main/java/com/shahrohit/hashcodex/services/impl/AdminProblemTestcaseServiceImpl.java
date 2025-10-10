@@ -22,7 +22,6 @@ public class AdminProblemTestcaseServiceImpl implements AdminProblemTestcaseServ
     private final ProblemRepository problemRepository;
     private final ProblemTestcaseRepository problemTestcaseRepository;
 
-    // ------ CREATE ------
     @Override
     public Long create(Integer problemNumber, CreateTestcaseRequest body) {
         Long id = problemRepository.findIdByNumber(problemNumber)
@@ -32,7 +31,6 @@ public class AdminProblemTestcaseServiceImpl implements AdminProblemTestcaseServ
         return problemTestcaseRepository.save(ProblemAdapter.toEntity(body, problem)).getId();
     }
 
-    // ------ GET ------
     @Override
     public Page<AdminTestcaseItem> findTestcases(Integer problemNumber, Pageable pageable) {
         Long id = problemRepository.findIdByNumber(problemNumber)
@@ -41,7 +39,6 @@ public class AdminProblemTestcaseServiceImpl implements AdminProblemTestcaseServ
         return problemTestcaseRepository.findTestcasesByProblemId(id, pageable);
     }
 
-    // ------ UPDATE ------
     @Override
     @Transactional
     public void updateInput(Integer problemNumber, Long testcaseId, UpdateTestcaseRequest body) {
@@ -72,7 +69,6 @@ public class AdminProblemTestcaseServiceImpl implements AdminProblemTestcaseServ
         problemTestcaseRepository.updateSampleById(testcaseId, sample);
     }
 
-    // ------ DELETE ------
     @Override
     @Transactional
     public void deleteTestcase(Integer problemNumber, Long testcaseId) {

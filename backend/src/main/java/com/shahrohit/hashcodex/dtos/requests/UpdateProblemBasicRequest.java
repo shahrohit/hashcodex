@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+/**
+ * Request DTO to update baisc details of problem
+ */
 public record UpdateProblemBasicRequest(
     @NotBlank(message = "{field.required}")
     @Size(min = 2, max = 100, message = "{field.size2_100}")

@@ -6,6 +6,7 @@ import com.shahrohit.hashcodex.dtos.TestcaseDto;
 import com.shahrohit.hashcodex.dtos.requests.RunCodeRequest;
 import com.shahrohit.hashcodex.dtos.requests.SubmitCodeRequest;
 import com.shahrohit.hashcodex.dtos.responses.SubmissionItem;
+import com.shahrohit.hashcodex.entities.ProblemSubmission;
 import com.shahrohit.hashcodex.exceptions.ForbiddenException;
 import com.shahrohit.hashcodex.exceptions.NotFoundException;
 import com.shahrohit.hashcodex.globals.ErrorCode;
@@ -15,7 +16,8 @@ import com.shahrohit.hashcodex.repositories.ProblemCodeRepository;
 import com.shahrohit.hashcodex.repositories.ProblemRepository;
 import com.shahrohit.hashcodex.repositories.ProblemSubmissionRepository;
 import com.shahrohit.hashcodex.repositories.ProblemTestcaseRepository;
-import com.shahrohit.hashcodex.services.ProblemSubmission;
+import com.shahrohit.hashcodex.services.ProblemSubmissionService;
+import com.shahrohit.hashcodex.utils.Constants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +26,7 @@ import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
-public class ProblemSubmissionImpl implements ProblemSubmission {
+public class ProblemSubmissionServiceImpl implements ProblemSubmissionService {
     private final ProblemRepository problemRepository;
     private final ProblemTestcaseRepository problemTestcaseRepository;
     private final ProblemCodeRepository problemCodeRepository;
@@ -51,7 +53,7 @@ public class ProblemSubmissionImpl implements ProblemSubmission {
         String solutionCode = mergeCode(dto.driverCode(), dto.solutionCode());
         String code = mergeCode(dto.driverCode(), body.code());
 
-        SubmissionRequest request = SubmissionRequest.runRequest(body.language(), solutionCode, code, startLine,testcases);
+        SubmissionRequest request = SubmissionRequest.runRequest(body.language(), solutionCode, code, startLine, testcases);
         return submissionProducer.send(request);
     }
 
@@ -66,10 +68,12 @@ public class ProblemSubmissionImpl implements ProblemSubmission {
             .orElseThrow(() -> new NotFoundException(ErrorCode.PROBLEM_NOT_FOUND));
 
         int startLine = findLineNumber(driverCode);
-        if (startLine == -1) { throw new ForbiddenException(ErrorCode.SERVER_ERROR);}
+        if (startLine == -1) {
+            throw new ForbiddenException(ErrorCode.SERVER_ERROR);
+        }
         String code = mergeCode(driverCode, body.code());
 
-        com.shahrohit.hashcodex.entities.ProblemSubmission submission = problemSubmissionRepository.save(ProblemAdapter.toEntity(userId, id, body));
+        ProblemSubmission submission = problemSubmissionRepository.save(ProblemAdapter.toEntity(userId, id, body));
         SubmissionRequest request = SubmissionRequest.submitRequest(submission.getId(), body.language(), code, startLine, testcases);
         return submissionProducer.send(request);
     }
@@ -79,20 +83,27 @@ public class ProblemSubmissionImpl implements ProblemSubmission {
         return problemSubmissionRepository.findProblemSubmissionsByUser(userId, number);
     }
 
+    /**
+     * Find the line number from where the user code will be placed.
+     *
+     * @param code - Driver Code
+     * @return - return the line number if found else return -1;
+     */
     public static int findLineNumber(String code) {
-        int index = code.indexOf("{{code}}");
+        int index = code.indexOf(Constants.USER_CODE);
         if (index == -1) return -1; // not found
 
         int lineNumber = 1;
         for (int i = 0; i < index; i++) {
-            if (code.charAt(i) == '\n') {
-                lineNumber++;
-            }
+            if (code.charAt(i) == '\n') lineNumber++;
         }
         return lineNumber;
     }
 
+    /**
+     * Merge Driver Code and User Code
+     */
     public static String mergeCode(String driverCode, String userCode) {
-        return driverCode.replaceFirst(Pattern.quote("{{code}}"), userCode);
+        return driverCode.replaceFirst(Pattern.quote(Constants.USER_CODE), userCode);
     }
 }

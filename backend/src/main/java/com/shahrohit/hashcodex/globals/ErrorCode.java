@@ -10,7 +10,7 @@ public enum ErrorCode {
     USER_NOT_FOUND("User Not Found"),
     CREDENTIALS_INVALID("Invalid Credentials"),
     EMAIL_ALREADY_EXISTS("Email already taken"),
-    PASSWORD_MISMATCH("Password don't match"),
+    PASSWORD_NOT_MATCH("Password don't match"),
     EMAIL_NOT_FOUND("Email not found"),
     LINK_EXPIRED("Link Expired"),
     SESSION_NOT_FOUND("Session not found"),

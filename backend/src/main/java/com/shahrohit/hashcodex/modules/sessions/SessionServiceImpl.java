@@ -33,7 +33,13 @@ public class SessionServiceImpl implements SessionService {
     private final JwtProperties jwtProperties;
     private final SessionRepository sessionRepository;
 
-
+    /**
+     * Create new sesssion
+     *
+     * @param user   - {@link UserProfile} of the current user
+     * @param userId - user id of the current user
+     * @return - JWT access token
+     */
     @Override
     public String createSession(UserProfile user, Long userId) {
         Instant createdAt = Instant.now();
@@ -44,23 +50,27 @@ public class SessionServiceImpl implements SessionService {
         return generateToken(user.publicId(), user.role(), session.getId(), createdAt, accessTokenExpiresAt);
     }
 
-
+    /**
+     * Revoke the session
+     *
+     * @param sessionId - the session id
+     */
     @Override
+    @Transactional
     public void clearSession(UUID sessionId) {
         sessionRepository.deleteSessionById(sessionId);
     }
 
     /**
-     * Verifies the validity of an access token and returns the associated user profile.
+     * Verify the access token is valid or not.
      *
-     * @param claims the decoded token claims
-     * @return the {@link UserProfile} if the token is valid
-     * @throws UnauthorizedException or ForbiddenException if token is invalid, expired, revoked, or mismatched
+     * @param claims {@link TokenClaims} containig extracted token information.
+     * @return {@link SessionUser}
      */
     @Override
     @Transactional
     public SessionUser verifyAccessToken(TokenClaims claims) {
-        AccessSessionUser session = sessionRepository.findAccessSessionUserById(claims.sessionId(), claims.subject())
+        SessionDto session = sessionRepository.findSessionByIdAndPublicId(claims.sessionId(), claims.subject())
             .orElseThrow(() -> new UnauthorizedException(ErrorCode.SESSION_NOT_FOUND));
 
         String accessToken = null;
@@ -72,21 +82,17 @@ public class SessionServiceImpl implements SessionService {
             Instant createdAt = Instant.now();
             Instant accessTokenExpiresAt = createdAt.plusMillis(jwtProperties.accessTokenExpirationMs());
             Instant refreshTokenExpiresAt = createdAt.plusMillis(jwtProperties.refreshTokenExpirationMs());
-            System.out.println("Updating");
-            sessionRepository.updateSession(session.sessionId(), refreshTokenExpiresAt);
-            System.out.println("Updated");
+            sessionRepository.updateSessionExpiryBYId(session.sessionId(), refreshTokenExpiresAt);
             accessToken = generateToken(claims.subject(), session.role(), session.sessionId(), createdAt, accessTokenExpiresAt);
-            System.out.println("New token " + accessToken);
         }
 
         return new SessionUser(session.sessionId(), session.userId(), accessToken, session.enabled(), session.role());
     }
 
     /**
-     * Parses the given JWT token and returns its claims, marking it as expired if necessary.
+     * Extract the token claims from the JWT token.
      *
-     * @param token the raw JWT string
-     * @return {@link TokenClaims} representing the extracted data
+     * @return {@link TokenClaims}
      */
     @Override
     public TokenClaims getTokenClaims(String token) {
@@ -114,6 +120,9 @@ public class SessionServiceImpl implements SessionService {
         return Keys.hmacShaKeyFor(jwtProperties.secret().getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * Generate JWT Access Token
+     */
     private String generateToken(UUID subject, Role role, UUID sessionId, Instant createdAt, Instant expiresAt) {
         return Jwts.builder()
             .subject(subject.toString())
@@ -166,6 +175,12 @@ public class SessionServiceImpl implements SessionService {
         return UUID.fromString(sessionId);
     }
 
+    /**
+     * Extracts the token expiration∂ from token claims.
+     *
+     * @param claims the JWT claims
+     * @return token expiration
+     */
     private Instant extractExpiration(Claims claims) {
         Date expiration = claims.getExpiration();
         return expiration.toInstant();

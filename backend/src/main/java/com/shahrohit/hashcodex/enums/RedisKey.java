@@ -3,7 +3,7 @@ package com.shahrohit.hashcodex.enums;
 import lombok.Getter;
 
 public enum RedisKey {
-    VERIFY("verify_"), PASSWORD("password_");
+    VERIFY("verify_"), PASSWORD("pswd_");
 
     @Getter
     private final String key;

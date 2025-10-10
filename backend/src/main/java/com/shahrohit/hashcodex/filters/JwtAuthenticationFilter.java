@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * <p>
  * JWT Authentication Filter that intercepts HTTP requests and validates
- * the JWT access token. If valid, sets the authentication in the security context.
+ * the JWT token. If valid, sets the authentication in the security context.
  * </p>
  *
  * <p>This filter is executed once per request.</p>
@@ -52,6 +52,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             UserPrincipal userDetails = (UserPrincipal) userDetailsService.loadUserByUsername(accessToken);
+
+            // Refresh the token
             if (userDetails.getAccessToken() != null) {
                 ResponseCookie authCookie = CookieUtils.createAuthCookie(userDetails.getAccessToken());
                 response.addHeader(Constants.Auth.HEADER_SET_COOKIE, authCookie.toString());

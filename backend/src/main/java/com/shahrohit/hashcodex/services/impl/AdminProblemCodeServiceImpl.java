@@ -23,7 +23,6 @@ public class AdminProblemCodeServiceImpl implements AdminProblemCodeService {
     private final ProblemRepository problemRepository;
     private final ProblemCodeRepository problemCodeRepository;
 
-    // ------ CREATE ------
     @Override
     public Long create(Integer problemNumber, CreateCodeRequest body) {
         Long id = problemRepository.findIdByNumber(problemNumber)
@@ -34,7 +33,6 @@ public class AdminProblemCodeServiceImpl implements AdminProblemCodeService {
         return code.getId();
     }
 
-    // ------ GET ------
     @Override
     public List<AdminCodeItem> findCodes(Integer problemNumber) {
         Long id = problemRepository.findIdByNumber(problemNumber)
@@ -43,7 +41,6 @@ public class AdminProblemCodeServiceImpl implements AdminProblemCodeService {
         return problemCodeRepository.findCodesByProblemId(id);
     }
 
-    // ------ UPDATE ------
     @Override
     @Transactional
     public void updateDriverCode(Integer problemNumber, Long codeId, UpdateCodeRequest body) {

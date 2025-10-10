@@ -15,23 +15,16 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface ProblemRepository extends JpaRepository<Problem, Long> {
-    boolean existsBySlug(String slug);
+    boolean existsBySlug(@Param("slug") String slug);
 
-    boolean existsByNumber(Integer number);
+    boolean existsByNumber(@Param("number") Integer number);
 
-    @Query(ProblemQuery.ADMIN_EXISTS_TESTCASES_BY_PROBLEM_ID)
-    boolean existsProblemTestcases(@Param("problemId") Long problemId);
-
-    @Query(ProblemQuery.ADMIN_EXISTS_CODES_BY_PROBLEM_ID)
-    boolean existsProblemCodes(@Param("problemId") Long problemId, @Param("langCount") long langCount);
-
-    @Query(ProblemQuery.ADMIN_FIND_ID_BY_NUMBER)
-    Optional<Long> findIdByNumber(Integer number);
+    @Query(ProblemQuery.FIND_ID_BY_NUM)
+    Optional<Long> findIdByNumber(@Param("number") Integer number);
 
     @Query(ProblemQuery.ADMIN_PAGE_ALL)
     Page<AdminProblemItem> findAllProblems(Pageable pageable);
@@ -48,23 +41,22 @@ public interface ProblemRepository extends JpaRepository<Problem, Long> {
     Optional<AdminProblemDetail> findProblemDetailBySlug(@Param("slug") String slug);
 
     @Query(ProblemQuery.USER_PAGE_PROBLEMS)
-    Page<UserProblemItem> findUserProblems(Long userId, Pageable pageable);
+    Page<UserProblemItem> findUserProblems(
+        @Param("userId") Long userId,
+        Pageable pageable
+    );
 
     @Query(ProblemQuery.PUBLIC_PAGE_PROBLEMS)
     Page<UserProblemItem> findPublicProblems(Pageable pageable);
 
-    @Query(ProblemQuery.USER_FIND_ACTIVE_PROBLEM_BY_SLUG)
+    @Query(ProblemQuery.FIND_ACTIVE_PROBLEM_BY_SLUG)
     Optional<Problem> findActiveProblemBySlug(@Param("slug") String slug);
 
-    @Query(ProblemQuery.USER_FIND_ID_BY_NUMBER)
+    @Query(ProblemQuery.FIND_ID_BY_ACTIVE_NUM)
     Optional<Long> findIdByActiveNumber(@Param("number") Integer number);
 
-    @Query(ProblemQuery.USER_FIND_TOPIC_NAMES_BY_ID)
-    List<String> findTopicNamesByProblemId(@Param("problemId") Long problemId);
-
-
     @Modifying
-    @Query(ProblemQuery.ADMIN_UPDATE_BASIC_BY_NUMBER)
+    @Query(ProblemQuery.UP_BASIC_BY_NUM)
     int updateBasicByNumber(
         @Param("number") Integer number,
         @Param("title") String title,
@@ -74,7 +66,7 @@ public interface ProblemRepository extends JpaRepository<Problem, Long> {
     );
 
     @Modifying
-    @Query(ProblemQuery.ADMIN_UPDATE_DESCRIPTION_BY_NUMBER)
+    @Query(ProblemQuery.UP_DESC_BY_NUM)
     void updateDescriptionByNumber(
         @Param("number") Integer number,
         @Param("description") String description,
@@ -82,7 +74,7 @@ public interface ProblemRepository extends JpaRepository<Problem, Long> {
     );
 
     @Modifying
-    @Query(ProblemQuery.ADMIN_UPDATE_SLUG_BY_NUMBER)
+    @Query(ProblemQuery.UP_SLUG_BY_NUM)
     int updateSlugByNumber(
         @Param("number") Integer number,
         @Param("slug") String slug,
@@ -90,7 +82,7 @@ public interface ProblemRepository extends JpaRepository<Problem, Long> {
     );
 
     @Modifying
-    @Query(ProblemQuery.ADMIN_UPDATE_ACTIVE)
+    @Query(ProblemQuery.UP_ACTIVE_BY_ID)
     void updateActiveById(
         @Param("id") Long id,
         @Param("active") Boolean active,

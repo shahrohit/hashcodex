@@ -16,14 +16,14 @@ import java.util.Optional;
 public interface TopicRepository extends JpaRepository<Topic, Long> {
     boolean existsBySlug(String slug);
 
-    @Query(TopicQuery.ADMIN_FIND_ID_BY_SLUG)
+    @Query(TopicQuery.FIND_ID_BY_SLUG)
     Optional<Long> findIdBySlug(String slug);
 
-    @Query(TopicQuery.PUBLIC_FIND_ALL)
+    @Query(TopicQuery.FIND_ALL_TOPICS)
     List<TopicItem> findAllTopics();
 
     @Modifying
-    @Query(TopicQuery.ADMIN_UPDATE_BY_SLUG)
+    @Query(TopicQuery.UP_TOPIC_SLUG)
     int updateBySlug(
         @Param("oldSlug") String oldSlug,
         @Param("slug") String slug,
@@ -31,7 +31,7 @@ public interface TopicRepository extends JpaRepository<Topic, Long> {
     );
 
     @Modifying
-    @Query(TopicQuery.ADMIN_DELETE_BY_SLUG)
+    @Query(TopicQuery.DEL_TOPIC_BY_SLUG)
     int deleteBySlug(@Param("slug") String slug);
 
 }
