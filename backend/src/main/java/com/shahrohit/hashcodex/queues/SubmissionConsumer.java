@@ -50,7 +50,6 @@ public class SubmissionConsumer {
         }
 
 
-        String errorMessage = getString(result);
         SubmissionResult response = new SubmissionResult(
             null,
             result.total(),
@@ -59,27 +58,10 @@ public class SubmissionConsumer {
             result.compileError(),
             result.timeMs(),
             result.cases(),
-            errorMessage,
+            result.errorMessage(),
             result.submissionType()
         );
 
         serverSentEventHub.send(corr, "verdict", response);
-    }
-
-    private static String getString(SubmissionResult result) {
-        String errorMessage = null;
-        if (result.errorMessage() != null && !result.errorMessage().isEmpty()) {
-            errorMessage = switch (result.errorMessage()) {
-                case "run:type_mismatch" -> "Cannot Run your code";
-                case "run:ws_failed" -> "Failed to Run with custom testcases.";
-                case "run:compile_failed" -> "Failed to compile with custom testcases.";
-                case "run:failed" -> "Failed to run with custom testcases. Make sure your input testcases are valid";
-                case "sub:type_mismatch" -> "Cannot Submit your code";
-                case "sub:ws_failed" -> "Failed to Submit your code";
-                case "lang" -> "Language Not Supported";
-                default -> null;
-            };
-        }
-        return errorMessage;
     }
 }
