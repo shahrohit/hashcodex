@@ -12,7 +12,7 @@ export default function ProblemHeader() {
   return (
     <div className="flex h-full w-full items-center justify-between gap-1">
       <Link href="/" className="h-8">
-        <Image src={Logo} alt="Engineerg" className="size-full" />
+        <Image src={Logo} alt="Hashcodex" className="size-full" />
       </Link>
       {user && (
         <div className="flex gap-1">
