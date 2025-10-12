@@ -44,3 +44,7 @@ It supports `multiple languages`, real-time result streaming, and `safe code exe
 
 - Immediate feedback for `compile/run errors`, `timeouts`, and `wrong answers`.
 - Stores submission results in database.
+
+## Architecture
+
+![Hashcodex Architecture](/public/architecture.png)
