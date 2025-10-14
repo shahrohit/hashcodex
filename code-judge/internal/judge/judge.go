@@ -36,8 +36,8 @@ func RunWithCustomTestcases(ctx context.Context, ex *executor.Executor, body typ
 	defer ex.RemoveWorkspace(ws)
 
 	opts := Options{
-		Compile: types.Limits{MemBytes: 512 * 1024 * 1024, CPUNanos: 2_000_000_000, PidsLimit: 256, Timeout: 10 * time.Second},
-		Run:     types.Limits{MemBytes: 256 * 1024 * 1024, CPUNanos: 1_000_000_000, PidsLimit: 128, Timeout: 2 * time.Second},
+		Compile: types.Limits{MemBytes: 512 * 1024 * 1024, CPUNanos: 2_000_000_000, PidsLimit: 256, Timeout: 5 * time.Second},
+		Run:     types.Limits{MemBytes: 256 * 1024 * 1024, CPUNanos: 1_000_000_000, PidsLimit: 128, Timeout: time.Duration(utils.GetTimeLimit(body.Language, body.TimeLimit)) * time.Second},
 	}
 
 	// Compile Solution Code
@@ -152,8 +152,8 @@ func RunWithPredefinedTestcase(ctx context.Context, ex *executor.Executor, body 
 	defer ex.RemoveWorkspace(ws)
 
 	opts := Options{
-		Compile: types.Limits{MemBytes: 512 * 1024 * 1024, CPUNanos: 2_000_000_000, PidsLimit: 256, Timeout: 10 * time.Second},
-		Run:     types.Limits{MemBytes: 256 * 1024 * 1024, CPUNanos: 1_000_000_000, PidsLimit: 128, Timeout: 2 * time.Second},
+		Compile: types.Limits{MemBytes: 512 * 1024 * 1024, CPUNanos: 2_000_000_000, PidsLimit: 256, Timeout: 5 * time.Second},
+		Run:     types.Limits{MemBytes: 256 * 1024 * 1024, CPUNanos: 1_000_000_000, PidsLimit: 128, Timeout: time.Duration(utils.GetTimeLimit(body.Language, body.TimeLimit)) * time.Second},
 	}
 
 	// Compile

@@ -9,6 +9,7 @@ type Submission struct {
     Code         string `json:"code"`
     Testcases    []Testcase `json:"testcases"`
     StartLine    int    `json:"startLine"`
+	TimeLimit	 float64	`json:"timeLimit"`
     Type         string `json:"submissionType"`
 }
 
