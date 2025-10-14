@@ -12,8 +12,13 @@ A **secure**, **real-time**, and **scalable** code execution & evaluation platfo
 4. [🏃 Execution Workflow](#-execution-workflow)
 5. [🧱 Tech Stack](#-tech-stack)
 6. [💾 Database Design](#-database-design)
-7. [🔐 Authentication Workflow](#-authentication-workflow)
-8. [🏗️ Go Worker Service Workflow](#-go-worker-service-workflow)
+7. [🔐 Backend System](#-backend-system)
+   1. [Session Management](#session-management)
+   2. [Redis Usecase](#redis-usecase)
+   3. [Scalable Notification System](#scalable-notification-system)
+   4. [Message Queue Integration](#message-queue-integration)
+   5. [Why Server-Sent Events (SSE)](#why-server-sent-events-sse)
+8. [🚀 Code Execution Service (Worker)](#-code-execution-service-worker)
 9. [🐳 Quick Setup (Docker Compose)](#-quick-setup-docker-compose)
 10. [🧠 Challenges Faced & Solutions](#-challenges-faced--solutions)
 
@@ -68,26 +73,27 @@ After login into the platform,
 
    - The `unique submission Id` is immediately send to backend to open a `SSE connection`.
 
-   - **Here, in the Go worker**, new `docker container` is spin up based on the language and the code is copied in the container, `compile (if needed)`. Then code is **executed with testcases in case of Submit** or **testcases are created based on solution code in case of Run**.
+   - **Here, in the Go worker**, new `docker container` is spin up based on the language and the code is copied in the container, `compile (if needed)`. Then code is **executed with testcases in case of Submit** or **testcases (expected output) are created based on solution code in case of Run**.
 
 7. Then the `result` is constructed based on the `stdOut` and `stdErr` and push into the `Submission Response Queue.`
 
 8. The Submission Response is `Consume` by the `Spring boot server` and pick up the stored result.
 
-9. The `status(Accepted or Wrong Answer or TLE or MLE or RunTime Eror)` is updated into the `databased`.
+9. The `status(Accepted or Wrong Answer or TLE or MLE or RunTime Eror)` is updated into the `database`.
 
 10. Then the result is send back to the `frontend` using the `SSE`.
 
 ## 🧱 Tech Stack
 
-| Layer            | Technology      | Purpose                                      |
-| ---------------- | --------------- | -------------------------------------------- |
-| Frontend         | Next.js (React) | Code editor & UI                             |
-| Backend          | Spring Boot     | API, Auth, SSE, queue producers/consumers    |
-| Worker           | Go              | Code execution in Docker sandbox             |
-| Message Queue    | RabbitMQ        | Async messaging                              |
-| Database         | PostgreSQL      | Store User, Problems, testcases, submissions |
-| Containerization | Docker          | Safe sandboxing                              |
+| Layer             | Technology      | Purpose                                                    |
+| ----------------- | --------------- | ---------------------------------------------------------- |
+| Frontend          | Next.js (React) | Code editor & UI                                           |
+| Backend           | Spring Boot     | API, Auth, SSE, queue producers/consumers                  |
+| Worker            | Go              | Code execution in Docker sandbox                           |
+| Message Queue     | RabbitMQ        | Async messaging                                            |
+| Database          | PostgreSQL      | Store User, Problems, testcases, submissions               |
+| Cache/Token Store | Redis           | Temporary storage for verification & password reset tokens |
+| Containerization  | Docker          | Safe sandboxing                                            |
 
 ## 💾 Database Design
 
@@ -192,7 +198,7 @@ After login into the platform,
 
 ### Problem Testcases
 
-- Store the testcases realted to a problem.
+- Store the testcases related to a problem.
 
 - `input` field represents the input testcase. In case of multiple parameters, inputs are seprated by `\n`.
 
@@ -234,6 +240,268 @@ After login into the platform,
   - **MLE** = Memeory Limit Exceed
   - **SOLVED** = Submission Accepted
   - **SERVER_ERROR** = Something went wrong
+
+## 🔐 Backend System
+
+> - **Language** : Java (JDK 21)
+> - **Framework**: Spring Boot v3.5
+> - **Build System**: Gradle
+> - **Architecture**: Controller - Service - Repository
+> - **Database Migrations** : Flyway
+> - **Security** : Spring Security
+> - **Persistence API**: Spring data JPA
+
+### Session Management
+
+> After creating new account in the platform, then a confirmation link is sent to the registered email address to verify the account.
+
+**After verification,**
+
+- User login with the registered email and password.
+
+- Server verifies the credentails.
+
+- Then a new entry is created in the `Session Table` with the **expiration value** fetch from the `application.properties` file.
+
+- Also, and **Access Token** which is a `short-lived JWT` is created where the `user public id as subject`. **user's role**, and the **unique session id** is also stored in the JWT paylod and the expiration is also set using value store d in `application.properties`.
+
+- The generated access token is send to frontend as **HTTP-Only Cookie**
+
+- **On every Request**, the cookie is automatically send along with the request.
+
+- **In secure endpoints**, the token cookie is extracted and verify before reaching to `controller`.
+
+- **If the token is expired**, and then the current session is fetch using session id stored in the JWT payload, if the session is not expired then `new access token is generated` and the expiration of session is updated.
+
+- Then the request is **forwarded** to the controller.
+
+### Redis Usecase
+
+> **Redis** is used to store the **authentication token** during `email verification` and `password reset`.
+
+- After creating new account, the email need to verify.
+
+- Then a secure random token is generated and stored in redis. The `token is stored as value` and the `user public id as key`.
+
+  ```text
+  verify_<User-Public-Id> : <Secure-Random-Token>
+  ```
+
+- Similary, for password reset,
+
+  ```
+  pswd_<User-Public-Id> : <Secure-Random-Token>
+  ```
+
+### Scalable Notification System
+
+> Purpose: Send verification and password reset emails asynchronously using an event-driven architecture.
+
+- To keep the main request fast and resilient, email notifications are handled asynchronously using Spring Boot’s `@EventListener` and `@Async` annotations.
+
+- This design decouples notification logic from core business logic — making the system scalable
+
+- **In DEV mode**, notifications are simply printed to the console for easy debugging.
+
+- **In PROD mode**, the listener delegates to the appropriate Notifier implementation (e.g., EmailNotifier).
+
+- Here is exmple code of Notification Event Listener
+
+  ```java
+  @Component
+  @RequiredArgsConstructor
+  public class NotificationEventListener {
+    private final List<Notifier<? extends NotificationPayload>> notifiers;
+    private final ProfileProperties profileProperties;
+
+    @Async
+    @EventListener
+    public void handleNotification(NotificationPayload payload) {
+        switch (profileProperties.active()) {
+            case DEV -> {
+                System.out.println("To: " + payload.recipient());
+                System.out.println(payload.content());
+            }
+
+            case PROD -> notifiers.stream()
+                .filter(notifier -> notifier.getPayloadType().isInstance(payload))
+                .findFirst()
+                .ifPresent(notifier -> NotificationEventListener.sendNotification(notifier, payload));
+        }
+    }
+
+    private static <T extends NotificationPayload> void sendNotification(
+        Notifier<T> notifier,
+        NotificationPayload payload
+    ) {
+        T typedPayload = notifier.getPayloadType().cast(payload);
+        notifier.send(typedPayload);
+    }
+  }
+
+  ```
+
+### Message Queue Integration
+
+> Hashcodex uses **RabbitMQ** to decouple the API/backend from the execution workers and to build a robust, scalable, event-driven pipeline for running and returning submission results.
+
+- There are two Queue **Submission Request Queue** and **Submission Response Queue**.
+
+- In rabbit MQ, we need exhange and routing keys. Also, need to bind the queue, exhange, routing key.
+
+- The values of the Queue, Exchange and Routing Keys are
+
+  ```text
+  // Request
+  Request Exchange = hashcodex.req.exhange
+  Request Queue = hashcodex.req.queue
+  Request Routingkey = hashcodex.req
+
+  // Response
+  Response Exchange = hashcodex.res.exhange
+  Response Queue = hashcodex.res.queue
+  Response Routingkey = hashcodex.res
+
+  // Binding Request
+  Request Exchange + Request Routingkey --> Request Queue
+
+  // Binidng Response
+  Response Exchange + Response Routingkey --> Response Queue
+  ```
+
+- In **Submission Request Queue**, the `producer is the spring boot server` which actally push submission payload to the queue. And, `Go Worker is the consumer` of this queue who listen to the queue and fetch the payload .
+
+  Message Payload structure:
+
+  ```json
+  {
+    "submissionId" : 1, // DB submission id (null in case of RUN)
+    "language" : "JAVA", // or CPP or PYTHON
+    "solutionCode" : null, // null in case of SUBMIT
+    "code" : "// driver + user code...",
+    "startLine" : 4,
+    "testcases" : [
+      {"input", "1 2 3 4\n5", "output" : "0 3"}
+    ],
+    "submissionType" : "SUBMIT" // or "RUN"
+  }
+  ```
+
+  **Note:** Along with the message payload, a `correlation id` is sent. this is the unique submission id. It uniquely identify each submission payload.
+
+  The `submissionId` in the payload is the Database submission id which helps to update the submission response status in the database. It can be `null` in case of `RUN`, running with custom testcase doesnot create submission entry in database.
+
+  `startLine` is the interger value which store from which line the user code start in the main code after merging driver code and user code. Helps in `aligning Error line` with the user code.
+
+- In **Submission Response Queue**, The `Go Worker is the producer` who push the submission result/response to the queue and `spring boot server is the consumer` who listen to the queue and fetch the submission result.
+
+  ```json
+  {
+    "id": 1, // submission id
+    "total": 10, // total testcases
+    "passed": 5, // total passed
+    "status": "WA", // overall status
+    "compileError": null, // compile error if any
+    "timeMs": "200", // total time taken in milli second
+    "cases": [
+      {
+        "input": "// input testcase",
+        "output": "// output testcase",
+        "expected": "// expected value",
+        "error": "// error is any else null",
+        "status": "// testcase status"
+      }
+    ],
+    "errorMessage": null,
+    "submissionType": "SUBMIT" // or "RUN"
+  }
+  ```
+
+  **Note:** Along with the response payload, the same `correlation id` is send back.
+
+### Why Server-Sent Events (SSE)
+
+> I choose Server-Sent Events (SSE) because my platform only requires one-way, real-time updates from the backend to the frontend, not a full duplex connection like WebSockets.
+
+- **Unidirectional communication fits perfectly**
+
+  In my use case, after a user submits code, the backend just needs to stream status updates.
+
+  The client doesn’t need to continuously send messages back so a simple, server-to-client stream is ideal.
+
+  SSE is lightweight,and built on standard HTTP — no special protocol handling.
+
+- **Better than Polling**
+
+  Traditional polling (e.g., hitting `/status` every few seconds) is wasteful causes high server load.
+
+  SSE provides instant push updates over a single long-lived HTTP connection.
+
+- **Simpler than WebSockets for this use case**
+
+  WebSockets provide full-duplex communication which is not required as the platform doesn’t require bidirectional communication, only required server → client updates (for code execution results).
+
+## 🚀 Code Execution Service (Worker)
+
+> The Code Execution Service (written in Go) is a distributed worker responsible for compiling and executing user-submitted code securely inside isolated Docker containers.
+>
+> It consumes jobs from RabbitMQ queues and publishes results back once execution is completed.
+
+### 🐳 Docker Sandboxed Execution
+
+The worker executes user code using ephemeral containers with strict isolation.
+
+- Docker images for the respective languages are :
+
+  - Java : `openjdk:21-jdk`
+  - C++ : `gcc:13`
+  - Python : `python:3.11-alpine`
+
+**Docker Containers Configuration,**
+
+- **NetworkMode : "none"** - completely isolated (no internet access)
+
+- **No Linux capabilities**
+
+- **No privileged containers**
+
+- **Limited memory and CPU**
+
+  | For         | Memory (MB) | CPUNanos      | Pids Limit |
+  | ----------- | ----------- | ------------- | ---------- |
+  | **Compile** | 512         | 2,000,000,000 | 256        |
+  | **Run**     | 256         | 1,000,000,000 | 128        |
+
+  **To ensure fairness,** Hashcodex `dynamically scales time per language` using predefined multipliers.
+  C++ is fastest among these 3 languages, so the base time decided by the `execution time of C++` and it is set by the problem admin.
+
+  | Language | Time Factor |
+  | -------- | ----------- |
+  | C++      | 1.0x        |
+  | Java     | 2.0x        |
+  | Python   | 5.0x        |
+
+**Code Compilation & Execution**
+
+**After docker container is created**,
+
+- source code is copied into the container.
+
+- Then code is compiled (if applicable).
+
+- Then the code is run per testcases. Testcase are feeded by standard input.
+
+- The job of the driver code is to accept the input and call the Solution with input.
+
+**Result Collection and Formatting**
+
+- Output is collected with the **StdOut** and **StdErr**.
+
+- **In case of Compilation Error & Run Time Error**, the error message is passed through a layer that format the error message.
+
+- When something error happend like a `compile time error` or a `Run Time Error`, the error message contains the line number where the error happens. This
+
+- Error line number is based on th merged code (driver code + user code). So the Error message is updated based on the user code by the help of the `startLine` value send in the submission paylod.
 
 ## 👨‍💻 Author
 
