@@ -65,5 +65,5 @@ public interface ProblemQuery {
     String FIND_ACTIVE_PROBLEM_BY_SLUG = "SELECT p FROM Problem p WHERE p.slug = :slug AND p.active = true";
 
     // language=JPQL
-    String FIND_ID_BY_ACTIVE_NUM = "SELECT p.id FROM Problem p WHERE p.number = :number AND p.active = true";
+    String FIND_ID_AND_TIME_LIMIT_BY_ACTIVE_NUM = "SELECT new com.shahrohit.hashcodex.dtos.ProblemIdAndTimeLimit(p.id, p.timeLimit) FROM Problem p WHERE p.number = :number AND p.active = true";
 }

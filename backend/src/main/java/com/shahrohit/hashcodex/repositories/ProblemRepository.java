@@ -1,5 +1,6 @@
 package com.shahrohit.hashcodex.repositories;
 
+import com.shahrohit.hashcodex.dtos.ProblemIdAndTimeLimit;
 import com.shahrohit.hashcodex.dtos.responses.AdminProblemDetail;
 import com.shahrohit.hashcodex.dtos.responses.AdminProblemItem;
 import com.shahrohit.hashcodex.dtos.responses.UserProblemItem;
@@ -52,8 +53,8 @@ public interface ProblemRepository extends JpaRepository<Problem, Long> {
     @Query(ProblemQuery.FIND_ACTIVE_PROBLEM_BY_SLUG)
     Optional<Problem> findActiveProblemBySlug(@Param("slug") String slug);
 
-    @Query(ProblemQuery.FIND_ID_BY_ACTIVE_NUM)
-    Optional<Long> findIdByActiveNumber(@Param("number") Integer number);
+    @Query(ProblemQuery.FIND_ID_AND_TIME_LIMIT_BY_ACTIVE_NUM)
+    Optional<ProblemIdAndTimeLimit> findIdByActiveNumber(@Param("number") Integer number);
 
     @Modifying
     @Query(ProblemQuery.UP_BASIC_BY_NUM)

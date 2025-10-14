@@ -23,6 +23,7 @@ public class ProblemAdapter {
         problem.setDifficulty(body.difficulty());
         problem.setActive(false);
         problem.setParams(body.params());
+        problem.setTimeLimit(1.0);
         return problem;
     }
 

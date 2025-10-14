@@ -53,6 +53,9 @@ public class Problem {
     @Column(nullable = false)
     private Boolean active;
 
+    @Column(nullable = false)
+    private double timeLimit;
+
     @CreationTimestamp
     @Column(updatable = false, nullable = false)
     private Instant createdAt;

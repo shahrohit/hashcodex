@@ -1,6 +1,7 @@
 package com.shahrohit.hashcodex.services.impl;
 
 import com.shahrohit.hashcodex.adapters.ProblemAdapter;
+import com.shahrohit.hashcodex.dtos.ProblemIdAndTimeLimit;
 import com.shahrohit.hashcodex.dtos.RunCodeDto;
 import com.shahrohit.hashcodex.dtos.TestcaseDto;
 import com.shahrohit.hashcodex.dtos.requests.RunCodeRequest;
@@ -35,10 +36,10 @@ public class ProblemSubmissionServiceImpl implements ProblemSubmissionService {
 
     @Override
     public String runCode(Long userId, Integer number, RunCodeRequest body) {
-        Long id = problemRepository.findIdByActiveNumber(number)
+        ProblemIdAndTimeLimit problem = problemRepository.findIdByActiveNumber(number)
             .orElseThrow(() -> new NotFoundException(ErrorCode.PROBLEM_NOT_FOUND));
 
-        RunCodeDto dto = problemCodeRepository.findRunCodeByProblemIdAndLanguage(id, body.language())
+        RunCodeDto dto = problemCodeRepository.findRunCodeByProblemIdAndLanguage(problem.problemId(), body.language())
             .orElseThrow(() -> new ForbiddenException(ErrorCode.PROBLEM_NOT_FOUND));
 
         int startLine = findLineNumber(dto.driverCode());
@@ -53,18 +54,18 @@ public class ProblemSubmissionServiceImpl implements ProblemSubmissionService {
         String solutionCode = mergeCode(dto.driverCode(), dto.solutionCode());
         String code = mergeCode(dto.driverCode(), body.code());
 
-        SubmissionRequest request = SubmissionRequest.runRequest(body.language(), solutionCode, code, startLine, testcases);
+        SubmissionRequest request = SubmissionRequest.runRequest(body.language(), solutionCode, code, startLine, problem.timeLimit(), testcases);
         return submissionProducer.send(request);
     }
 
     @Override
     public String submitCode(Long userId, Integer number, SubmitCodeRequest body) {
-        Long id = problemRepository.findIdByActiveNumber(number)
+        ProblemIdAndTimeLimit problem = problemRepository.findIdByActiveNumber(number)
             .orElseThrow(() -> new NotFoundException(ErrorCode.PROBLEM_NOT_FOUND));
 
-        List<TestcaseDto> testcases = problemTestcaseRepository.findRunTestcasesByProblemId(id);
+        List<TestcaseDto> testcases = problemTestcaseRepository.findRunTestcasesByProblemId(problem.problemId());
 
-        String driverCode = problemCodeRepository.findDriverCodeByProblemIdAndLanguage(id, body.language())
+        String driverCode = problemCodeRepository.findDriverCodeByProblemIdAndLanguage(problem.problemId(), body.language())
             .orElseThrow(() -> new NotFoundException(ErrorCode.PROBLEM_NOT_FOUND));
 
         int startLine = findLineNumber(driverCode);
@@ -73,8 +74,8 @@ public class ProblemSubmissionServiceImpl implements ProblemSubmissionService {
         }
         String code = mergeCode(driverCode, body.code());
 
-        ProblemSubmission submission = problemSubmissionRepository.save(ProblemAdapter.toEntity(userId, id, body));
-        SubmissionRequest request = SubmissionRequest.submitRequest(submission.getId(), body.language(), code, startLine, testcases);
+        ProblemSubmission submission = problemSubmissionRepository.save(ProblemAdapter.toEntity(userId, problem.problemId(), body));
+        SubmissionRequest request = SubmissionRequest.submitRequest(submission.getId(), body.language(), code, startLine, problem.timeLimit(), testcases);
         return submissionProducer.send(request);
     }
 
