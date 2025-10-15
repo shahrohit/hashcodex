@@ -1,0 +1,119 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: hashcodex-postgres
+    environment:
+      POSTGRES_USER: hashcodex
+      POSTGRES_PASSWORD: hashcodex
+      POSTGRES_DB: hashcodex
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - hashcodex_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hashcodex"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: hashcodex-rabbitmq
+    ports:
+      - "5673:5672" # Broker
+      - "15673:15672" # Management Dashboard
+    networks:
+      - hashcodex_net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: hashcodex-redis
+    ports:
+      - "6380:6379"
+    networks:
+      - hashcodex_net
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hashcodex-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/hashcodex
+      DATABASE_USERNAME: hashcodex
+      DATABASE_PASSWORD: hashcodex
+
+      JWT_SECRET: b21e521db8cc6828d82823e1ea0d1a9481117740003862ebc19187bfd969b7ab8c1795a604c769dea9a2d81afa17c2460cddd91a4b9857c8ac3667040fad5ec466d60b3261a157fc85498709dfb5b99f89b2a44a4c80c61322a84f617ee3259996f8cb30b83b9518bb88caa47c0c2aa141dacea4addb85fcd224ee44d75fe12f
+      JWT_ACCESS_EXPIRATION_MS: 900000
+      JWT_REFRESH_EXPIRATION_MS: 604800000
+
+      EMAIL_HOST: smtp.gmail.com
+      FRONTEND_URL: http://localhost:3000
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+    ports:
+      - "8000:8000"
+    networks:
+      - hashcodex_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hashcodex-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:8000
+    networks:
+      - hashcodex_net
+
+  judge:
+    build:
+      context: ./code-judge
+      dockerfile: Dockerfile
+    container_name: hashcodex-judge
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      AMQP_URL: amqp://guest:guest@rabbitmq:5672/
+    networks:
+      - hashcodex_net
+    # Worker needs access to Docker daemon for sandboxing
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+volumes:
+  pg_data:
+  redis_data:
+
+networks:
+  hashcodex_net:
+    driver: bridge
