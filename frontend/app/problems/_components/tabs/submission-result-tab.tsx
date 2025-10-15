@@ -49,11 +49,13 @@ function Display({ data }: { data: TestcaseResult }) {
       {data.error ? (
         <CodeError message={data.error} />
       ) : (
-        <div className="">
+        <div className="space-y-3">
           {data.input?.split("\n").map((input, idx) => {
             return (
               <div key={idx}>
-                <Label className="text-muted-foreground">Param {idx + 1}</Label>
+                <Label className="text-muted-foreground mb-1">
+                  Param {idx + 1}
+                </Label>
                 <Input
                   className="rounded-[8px] !ring-0"
                   disabled
@@ -64,7 +66,7 @@ function Display({ data }: { data: TestcaseResult }) {
           })}
 
           <div>
-            <Label className="text-destructive">Your Output</Label>
+            <Label className="text-destructive mb-1">Your Output</Label>
             <Input
               className="border-destructive rounded-[8px] !ring-0"
               disabled
@@ -73,7 +75,9 @@ function Display({ data }: { data: TestcaseResult }) {
           </div>
 
           <div>
-            <Label className="text-muted-foreground">Expected Output</Label>
+            <Label className="text-muted-foreground mb-1">
+              Expected Output
+            </Label>
             <Input
               className="rounded-[8px] !ring-0"
               disabled
