@@ -45,7 +45,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         String accessToken = CookieUtils.getAuthCookie(request.getCookies());
 
-        if (accessToken == null || accessToken.isBlank()) {
+        String path = request.getRequestURI();
+        if (accessToken == null || accessToken.isBlank() || path.startsWith("/api/auth")) {
             filterChain.doFilter(request, response);
             return;
         }

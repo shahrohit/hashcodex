@@ -16,7 +16,6 @@ import com.shahrohit.hashcodex.exceptions.AlreadyExistsException;
 import com.shahrohit.hashcodex.exceptions.ForbiddenException;
 import com.shahrohit.hashcodex.exceptions.NotFoundException;
 import com.shahrohit.hashcodex.globals.ErrorCode;
-import com.shahrohit.hashcodex.queries.ProblemTestcaseQuery;
 import com.shahrohit.hashcodex.repositories.*;
 import com.shahrohit.hashcodex.services.AdminProblemService;
 import lombok.RequiredArgsConstructor;
