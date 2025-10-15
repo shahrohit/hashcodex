@@ -503,6 +503,75 @@ The worker executes user code using ephemeral containers with strict isolation.
 
 - Error line number is based on th merged code (driver code + user code). So the Error message is updated based on the user code by the help of the `startLine` value send in the submission paylod.
 
+## 🐳 Quick Setup (Docker Compose)
+
+Here is the step by step guid to setup the project locally and run it using `docker compose`.
+
+**Before setup,** make have installed `git` and `docker` in your system.
+
+Also, Docker should be running in your system.
+
+1. Clone the repository
+
+```bash
+git clone https://github.com/shahrohit/hashcodex.git
+```
+
+2. Go into the `hashcodex` directory.
+
+```bash
+cd hashcodex
+```
+
+3. create `.env` file in the frontend root directory
+
+4. Copy the below code into the `.env` file of the frontend (created just before)
+
+```
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+```
+
+5. Now build the project
+
+```bash
+docker compose build
+```
+
+6. Pull the docker image of compiler for each language. Run the below command one by one.
+
+```
+docker pull gcc:13
+docker pull openjdk:21-jdk
+docker pull python:3.11-alpine
+```
+
+7. Now, Run the project.
+
+```bash
+docker compose up -d
+```
+
+![Docker Compse](/public/demo_docker_compose.png)
+
+**Note:** Make sure the each service is running just like in the above image
+
+8. Now click on this url, [http://localhost:3000](http://localhost:3000). You will see the home page of `hashcodex`. You will see the some problem topics like Array, Linked List, etc and a problem `Two Sum`. If not then your services are not working properly. In that case restart the docker containers.
+
+9. Click on the `Get started` button in the top right corner.
+
+10. **You will ask for login**, the default login id and password is given below. These credentails have the `admin access`. You will maybe redirect to the admin page after login where you can manage problems.
+
+- Email : `hashcodex@shahrohit.com`
+- Password : `admin@123`
+
+11. Again go to the home page [http://localhost:3000](http://localhost:3000) then select the`Two Sum` problem. Then start solving your problem
+
+12. To Stop the docker containers, run the below command,
+
+```bash
+docker compose down
+```
+
 ## 👨‍💻 Author
 
 Built with ❤️ by Rohit Shah  
