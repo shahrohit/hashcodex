@@ -1,0 +1,18 @@
+.next/
+out/
+dist/
+
+# IDE/editor files
+*.iml
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Git files
+.git/
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
