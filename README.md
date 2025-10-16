@@ -97,7 +97,7 @@ After login into the platform,
 
 ## 💾 Database Design
 
-![Hashcodex Architecture](/public/db.png)
+## ![Hashcodex Architecture](/public/db.png)
 
 ### User
 
@@ -109,6 +109,8 @@ After login into the platform,
 
 - `public_id` is the UUID which can be `expose to public (frontend)` instead of the database id.
 
+---
+
 ### Session
 
 - Session Table stores the logged in `user session data` like **session id**, **user id**, **creation timestamp** and **expiry timestamp**.
@@ -118,6 +120,8 @@ After login into the platform,
 - It also helps to `refersh the Access Token` which is `short-lived JWT` usually of `15 minutes`.
 
 - There `One-To-Many` relationship from `User to Session`.
+
+---
 
 ### Problems
 
@@ -142,6 +146,8 @@ After login into the platform,
 - `active` field is used by **ADMIN** to `hide or unhide` a problem from **USER**.
 
 - `time_limit` controls the how much time a code have `maximum time to execute in seconds`, when it exceed it will give `Time Limit Exceed (TLE)`.
+
+---
 
 ### Problem Code
 
@@ -196,6 +202,8 @@ After login into the platform,
   };
   ```
 
+---
+
 ### Problem Testcases
 
 - Store the testcases related to a problem.
@@ -217,11 +225,15 @@ After login into the platform,
 
 - `sample` represent the testcase is `sample testcase or not`.
 
+---
+
 ### Topics
 
 - It stores the `problem topics`. like `Array`, `Linked List`, `Stack`, etc.
 
 - There is `Many-to-Many` relationship between `problems and topics`.
+
+---
 
 ### Problem Submission
 
@@ -275,6 +287,8 @@ After login into the platform,
 
 - Then the request is **forwarded** to the controller.
 
+---
+
 ### Redis Usecase
 
 > **Redis** is used to store the **authentication token** during `email verification` and `password reset`.
@@ -292,6 +306,8 @@ After login into the platform,
   ```
   pswd_<User-Public-Id> : <Secure-Random-Token>
   ```
+
+---
 
 ### Scalable Notification System
 
@@ -341,24 +357,26 @@ After login into the platform,
 
   ```
 
+---
+
 ### Message Queue Integration
 
 > Hashcodex uses **RabbitMQ** to decouple the API/backend from the execution workers and to build a robust, scalable, event-driven pipeline for running and returning submission results.
 
 - There are two Queue **Submission Request Queue** and **Submission Response Queue**.
 
-- In rabbit MQ, we need exhange and routing keys. Also, need to bind the queue, exhange, routing key.
+- In rabbit MQ, we need exchange and routing keys. Also, need to bind the queue, exchange, routing key.
 
 - The values of the Queue, Exchange and Routing Keys are
 
   ```text
   // Request
-  Request Exchange = hashcodex.req.exhange
+  Request Exchange = hashcodex.req.exchange
   Request Queue = hashcodex.req.queue
   Request Routingkey = hashcodex.req
 
   // Response
-  Response Exchange = hashcodex.res.exhange
+  Response Exchange = hashcodex.res.exchange
   Response Queue = hashcodex.res.queue
   Response Routingkey = hashcodex.res
 
@@ -418,6 +436,8 @@ After login into the platform,
   ```
 
   **Note:** Along with the response payload, the same `correlation id` is send back.
+
+---
 
 ### Why Server-Sent Events (SSE)
 
@@ -561,8 +581,10 @@ docker compose up -d
 
 10. **You will ask for login**, the default login id and password is given below. These credentails have the `admin access`. You will maybe redirect to the admin page after login where you can manage problems.
 
-- Email : `hashcodex@shahrohit.com`
-- Password : `admin@123`
+- Demo Email Address: `hikameb683@lorkex.com`
+- Demo Password : `admin@123`
+
+**Note:** The give email is temporary mail. Is is just used for demo purpose.
 
 11. Again go to the home page [http://localhost:3000](http://localhost:3000) then select the`Two Sum` problem. Then start solving your problem
 
@@ -571,6 +593,111 @@ docker compose up -d
 ```bash
 docker compose down
 ```
+
+## 🧠 Challenges Faced & Solutions
+
+1. **Executing external user code securely**
+
+   **Challenge**: Running arbitrary user code in the backend introduces security risks.
+
+   **Solution**: All user code is executed inside isolated Docker containers with strict resource limits, no network access, and dropped Linux capabilities.
+
+---
+
+2. **Ensuring complete isolation and safety**
+
+   **Challenge**: Preventing malicious code from accessing the host system.
+
+   **Solution**: Containers run with:
+
+   - NetworkMode: none (no internet access)
+   - CapDrop: ["ALL"] (no Linux capabilities)
+   - SecurityOpt: ["no-new-privileges"]
+   - Limited CPU, memory, and PID resources.
+
+---
+
+3. **Designing LeetCode-style solution structure**
+
+   **Challenge**: Allow users to only implement the function body, not boilerplate or I/O code.
+
+   **Solution**: Each problem stores a driver code with a `{{code}}` placeholder. User-submitted logic replaces this placeholder at runtime before execution.
+
+---
+
+4. **Structuring testcases with multiple parameters**
+
+   **Challenge**: Problems often contain multiple input parameters and outputs.
+
+   **Solution**: Each problem stores params, input, and output fields as newline-separated strings (e.g., `"nums\ntarget"`), allowing dynamic UI generation and flexible parsing.
+
+---
+
+5. **Handling submissions with predefined testcases**
+
+   **Challenge**: Evaluate user code against official testcases during “Submit”.
+
+   **Solution**: Worker runs the code using problem’s stored testcases and compares outputs with the expected results for each case.
+
+---
+
+6. **Handling custom runs with user-defined testcases**
+
+   **Challenge**: Allow users to test code with custom input before submission.
+
+   **Solution**: During `“Run”`, worker first executes solution code to generate expected output, then runs user code with the same input for comparison.
+
+---
+
+7. **Evaluating testcase results**
+
+   **Challenge**: Accurately compare outputs and determine verdicts.
+
+   **Solution**: Normalize both outputs (trim spaces, newlines) and compare line-by-line to classify results as Accepted, Wrong Answer, TLE, RTE, etc.
+
+---
+
+8. **Disabling user output streams**
+
+   **Challenge**: Preventing print/debug statements from interfering with expected results.
+
+   **Solution**: In driver code, output streams are temporarily disabled while calling the user’s function, then re-enabled for displaying final results.
+
+---
+
+9. **Aligning error line numbers with frontend editor**
+
+   **Challenge**: Compiler/runtime errors include extra lines from driver code, confusing users.
+
+   **Solution**: Worker reformats error messages, removing absolute paths and adjusting line offsets to match user code lines.
+
+---
+
+10. **Asynchronous execution & real-time feedback**
+
+    **Challenge**: Ensuring non-blocking execution and real-time result updates.
+
+    **Solution**:
+
+    - Submissions are processed asynchronously via RabbitMQ.
+    - Worker sends results to Response Queue.
+    - Backend streams live updates to the frontend using Server-Sent Events (SSE).
+
+<!-- 4. How to design a system similar to LeetCode, where users only implement the core logic inside a pre-defined method?
+
+5. How to store problem testcases that support multiple input parameters and data types.
+
+6. How to handle “Submit” executions, where user code must be evaluated against a predefined set of testcases?
+
+7. How to handle “Run” executions, where user code is tested using custom input provided from the frontend?
+
+8. Comparing actual output with expected output efficiently and determining the correct verdict (e.g., Accepted, Wrong Answer)?
+
+9. How to disable standard output streams in user code to prevent interference with system output and maintain result consistency?
+
+10. How to normalizing and formate compiler/runtime errors, including adjusting error line numbers to match the user’s original code as displayed in the frontend?
+
+11. How to achieve asynchronous execution and real-time result streaming to frontend? -->
 
 ## 👨‍💻 Author
 

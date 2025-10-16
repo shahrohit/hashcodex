@@ -36,7 +36,7 @@ public class DevDataSeeder implements CommandLineRunner {
     public void seedUser() {
         User user = new User();
         user.setPublicId(UUID.randomUUID());
-        user.setEmail("hashcodex@shahrohit.com");
+        user.setEmail("hikameb683@lorkex.com");
         user.setHashedPassword(passwordEncoder.encode("admin@123"));
         user.setName("Hashcodex Admin");
         user.setEmailVerified(true);
