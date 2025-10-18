@@ -8,7 +8,7 @@ export default function useLogout() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => await api.post("/auth/logout"),
+    mutationFn: async () => await api.post("/users/logout"),
     onSuccess: () => {
       setUser(null);
       queryClient.invalidateQueries();

@@ -5,10 +5,9 @@ import useLogin from "@/app/auth/_query/use-login";
 import loginSchema, { LoginType } from "@/app/auth/_schemas/user-login-schema";
 import { handleFormError } from "@/lib/error-handler";
 import { ApiResponse, ResponseCode } from "@/types/api-response";
-import User, { Role } from "@/types/user";
+import User from "@/types/user";
 import { Nullable } from "@/types/utility";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -19,7 +18,6 @@ type Props = {
 };
 
 function LoginForm({ onLinkSent, onForgetPassword }: Props) {
-  const router = useRouter();
   const { isPending, mutateAsync } = useLogin();
 
   const loginForm = useForm<LoginType>({
@@ -36,10 +34,9 @@ function LoginForm({ onLinkSent, onForgetPassword }: Props) {
         onLinkSent();
         return "A confirmation Link has been sent to your email address";
       }
-      if (data.data?.role === Role.ADMIN) router.push("/admin");
       return "Logged in successfully";
     },
-    [onLinkSent, router]
+    [onLinkSent]
   );
 
   const onSubmit = useCallback(
