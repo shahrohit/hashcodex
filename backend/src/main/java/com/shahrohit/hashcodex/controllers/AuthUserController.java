@@ -63,8 +63,8 @@ public class AuthUserController {
         HttpServletResponse response
     ) {
         UserIdAndProfile userIdAndProfile = authUserService.login(body);
+        if (userIdAndProfile == null) return ResponseEntity.ok(Response.build(SuccessCode.SENT));
         UserProfile user = userIdAndProfile.profile();
-        if (user == null) return ResponseEntity.ok(Response.build(SuccessCode.SENT));
 
         String accessToken = sessionService.createSession(user, userIdAndProfile.id());
         ResponseCookie authCookie = CookieUtils.createAuthCookie(accessToken);
@@ -73,11 +73,4 @@ public class AuthUserController {
         return ResponseEntity.ok(Response.build(SuccessCode.LOGGED_IN, user));
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<Response<NullType>> logout(@AuthenticationPrincipal UserPrincipal user, HttpServletResponse response) {
-        sessionService.clearSession(user.getSessionId());
-        ResponseCookie authCookie = CookieUtils.clearAuthCookie();
-        response.addHeader(Constants.Auth.HEADER_SET_COOKIE, authCookie.toString());
-        return ResponseEntity.ok(Response.build(SuccessCode.LOGGED_OUT));
-    }
 }
