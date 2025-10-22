@@ -21,6 +21,7 @@ A **secure**, **real-time**, and **scalable** code execution & evaluation platfo
 8. [🚀 Code Execution Service (Worker)](#-code-execution-service-worker)
 9. [🐳 Quick Setup (Docker Compose)](#-quick-setup-docker-compose)
 10. [🧠 Challenges Faced & Solutions](#-challenges-faced--solutions)
+11. [❓ Next steps](#-next-steps)
 
 ## 📘 Overview
 
@@ -683,21 +684,12 @@ docker compose down
     - Worker sends results to Response Queue.
     - Backend streams live updates to the frontend using Server-Sent Events (SSE).
 
-<!-- 4. How to design a system similar to LeetCode, where users only implement the core logic inside a pre-defined method?
+## ❓ Next steps
 
-5. How to store problem testcases that support multiple input parameters and data types.
-
-6. How to handle “Submit” executions, where user code must be evaluated against a predefined set of testcases?
-
-7. How to handle “Run” executions, where user code is tested using custom input provided from the frontend?
-
-8. Comparing actual output with expected output efficiently and determining the correct verdict (e.g., Accepted, Wrong Answer)?
-
-9. How to disable standard output streams in user code to prevent interference with system output and maintain result consistency?
-
-10. How to normalizing and formate compiler/runtime errors, including adjusting error line numbers to match the user’s original code as displayed in the frontend?
-
-11. How to achieve asynchronous execution and real-time result streaming to frontend? -->
+- Implement rate limiting for the problem submission.
+- Setup a CI/CD pipeline.
+- Implement container orchestration with kubernetes.
+- Implement horizontal scaling of worker service.
 
 ## 👨‍💻 Author
 
